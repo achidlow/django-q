@@ -287,8 +287,8 @@ def pusher(task_queue, event, broker=None):
     while True:
         try:
             task_set = broker.dequeue()
-        except Exception as e:
-            logger.error(e)
+        except Exception:
+            logger.exception('dequeue task from broker failed')
             # broker probably crashed. Let the sentinel handle it.
             sleep(10)
             break
@@ -298,8 +298,8 @@ def pusher(task_queue, event, broker=None):
                 # unpack the task
                 try:
                     task = signing.SignedPackage.loads(task[1])
-                except (TypeError, signing.BadSignature) as e:
-                    logger.error(e)
+                except (TypeError, signing.BadSignature):
+                    logger.exception('task unpack failed')
                     broker.fail(ack_id)
                     continue
                 task['ack_id'] = ack_id
@@ -436,8 +436,8 @@ def save_task(task, broker):
                                 group=task.get('group'),
                                 success=task['success']
                                 )
-    except Exception as e:
-        logger.error(e)
+    except Exception:
+        logger.exception('task save failed')
 
 
 def save_cached(task, broker):
@@ -481,8 +481,8 @@ def save_cached(task, broker):
         broker.cache.set(task_key,
                          signing.SignedPackage.dumps(task),
                          timeout)
-    except Exception as e:
-        logger.error(e)
+    except Exception:
+        logger.exception('save cached result failed')
 
 
 def scheduler(broker=None):
@@ -555,8 +555,8 @@ def scheduler(broker=None):
                 s.repeats = 0
             # save the schedule
             s.save()
-    except Exception as e:
-        logger.error(e)
+    except Exception:
+        logger.exception('exception in scheduler')
 
 
 def set_cpu_affinity(n, process_ids, actual=not Conf.TESTING):

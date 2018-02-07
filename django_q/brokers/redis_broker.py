@@ -33,9 +33,9 @@ class Redis(Broker):
     def ping(self):
         try:
             return self.connection.ping()
-        except redis.ConnectionError as e:
-            logger.error('Can not connect to Redis server.')
-            raise e
+        except redis.ConnectionError:
+            logger.exception('Can not connect to Redis server.')
+            raise
 
     def info(self):
         if not self._info:
